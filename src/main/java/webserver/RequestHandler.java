@@ -17,7 +17,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import model.User;
-import util.IOUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -41,44 +40,14 @@ public class RequestHandler extends Thread {
             
             br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             
-            String line = br.readLine();
-            System.out.println(line);
-            String url = separateUrlAndParameters(line);
-            String contentLength = "";
-            while(!"".equals(line)){
-            	System.out.println(line);
-            	if(line.startsWith("Content-Length")){
-            		contentLength = line.substring(line.indexOf(" ")+1);
-            		System.out.println(contentLength);
+            String firstHeaderLine = br.readLine();
+            String url = separateUrlAndParameters(firstHeaderLine);
+            
+           /* while((line = br.readLine()) != null){
+            	if(line != null){
+            		System.out.println(line);
             	}
-            	line = br.readLine();
-            	if(line == null){
-            		return;
-            	}
-            }
-            System.out.println("header end!!");
-            
-            String tt = IOUtils.readData(br, Integer.parseInt(contentLength));
-            System.out.println(tt);
-            System.out.println("body end!!");
-            
-            StringTokenizer st = new StringTokenizer(tt, "&");
-    		String[] separetedParams = null;
-    		String paramName = null;
-    		String paramValue = null;
-    		while(st.hasMoreTokens()){
-    			String tmpParam = st.nextToken();
-    			separetedParams = tmpParam.split("=");
-    			paramName = separetedParams[0];
-    			paramValue = separetedParams[1];
-    			tmpVo.put(paramName, paramValue);
-    		}
-    		if(isNotEmptyVo()){
-    			user = new User(tmpVo.get("userId"), tmpVo.get("password"), tmpVo.get("name"), tmpVo.get("email"));
-    		}
-    		
-    		log.info(user.toString());
-            
+            }*/
             byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
             response200Header(dos, body.length);
             responseBody(dos, body);
@@ -98,6 +67,7 @@ public class RequestHandler extends Thread {
 		if(url.contains("?")){
 			String pureUrl = url.substring(0, url.indexOf("?"));
 			setParamsFromUrl(url);
+			
 			
 			url = pureUrl;
 		}
