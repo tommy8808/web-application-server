@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 
 import db.DataBase;
 import model.User;
+import util.HttpRequestUtils;
 
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
@@ -44,61 +45,57 @@ public class RequestHandler extends Thread {
             br = new BufferedReader(new InputStreamReader(in, "UTF-8"));
             
             String firstHeaderLine = br.readLine();
-            String url = separateUrlAndParameters(firstHeaderLine);
-            
-            //printHeader();
-            System.out.println(url);
-            
-            if("/user/create".equals(url)){
-            	response302Header(dos, url);
-            	db.addUser(user);
-            }else if("/index.html".equals(url) || "/user/form.html".equals(url) || "/user/login.html".equals(url)){
-            	byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-            	response200Header(dos, body.length, "text/html");
-            	responseBody(dos, body);
-            }else if("/user/login".equals(url)){
-            	User tmpUser = db.findUserById(tmpVo.get("userId"));
-            	log.info(tmpUser.toString());
-            	if((tmpUser) != null && tmpUser.getPassword() == tmpVo.get("password")){
-            		System.out.println("로그인 성공");
-            	}else {
-            		System.out.println("로그인 실패");
-            	}
-            }else if(url.startsWith("/css/")){
-            	byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
-            	response200Header(dos, body.length, "text/css");
-            	responseBody(dos, body);
-            	
+            if(firstHeaderLine == null){
+            	return;
             }
+            String url = HttpRequestUtils.separateUrlAndParameters(firstHeaderLine);
+            
+            if(url.contains("?")){
+    			String pureUrl = url.substring(0, url.indexOf("?"));
+    			setParamsFromUrl(url);
+    			
+    			url = pureUrl;
+    		}
+            //printHeader();
+            log.debug("url : {}", url);
+            
+            dispatcher(dos, url);
         } catch (IOException e) {
             log.error(e.getMessage());
         }
     }
 
+	private void dispatcher(DataOutputStream dos, String url) throws IOException {
+		if("/user/create".equals(url)){
+			response302Header(dos, url);
+			db.addUser(user);
+		}else if("/index.html".equals(url) || "/user/form.html".equals(url) || "/user/login.html".equals(url)){
+			byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+			response200Header(dos, body.length, "text/html");
+			responseBody(dos, body);
+		}else if("/user/login".equals(url)){
+			User tmpUser = db.findUserById(tmpVo.get("userId"));
+			log.info(tmpUser.toString());
+			if((tmpUser) != null && tmpUser.getPassword() == tmpVo.get("password")){
+				log.debug("로그인 성공.");
+			}else {
+				log.debug("로그인 실패.");
+			}
+		}else if(url.startsWith("/css/")){
+			byte[] body = Files.readAllBytes(new File("./webapp" + url).toPath());
+			response200Header(dos, body.length, "text/css");
+			responseBody(dos, body);
+			
+		}
+	}
+
 	private void printHeader() throws IOException {
 		String firstHeaderLine;
 		while((firstHeaderLine = br.readLine()) != null){
 			if(firstHeaderLine != null){
-				System.out.println(firstHeaderLine);
+				log.debug("header : {}", firstHeaderLine);
 			}
 		}
-	}
-
-    private String separateUrlAndParameters(String line) {
-		String url = "";
-		StringTokenizer st = new StringTokenizer(line, " ");
-		while(st.hasMoreTokens()){
-			if((url = st.nextToken()).startsWith("/")){
-				break;
-			}
-		}
-		if(url.contains("?")){
-			String pureUrl = url.substring(0, url.indexOf("?"));
-			setParamsFromUrl(url);
-			
-			url = pureUrl;
-		}
-		return url;
 	}
 
 	private void setParamsFromUrl(String url) {

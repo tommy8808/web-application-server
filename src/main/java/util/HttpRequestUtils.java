@@ -2,12 +2,22 @@ package util;
 
 import java.util.Arrays;
 import java.util.Map;
+import java.util.StringTokenizer;
 import java.util.stream.Collectors;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import com.google.common.base.Strings;
 import com.google.common.collect.Maps;
 
+import model.User;
+import webserver.RequestHandler;
+
 public class HttpRequestUtils {
+	
+	private static final Logger log = LoggerFactory.getLogger(HttpRequestUtils.class);
+	
     /**
      * @param queryString은
      *            URL에서 ? 이후에 전달되는 field1=value1&field2=value2 형식임
@@ -105,5 +115,20 @@ public class HttpRequestUtils {
         public String toString() {
             return "Pair [key=" + key + ", value=" + value + "]";
         }
+        
+        
     }
+    
+    public static String separateUrlAndParameters(String line) {
+		String url = "";
+		StringTokenizer st = new StringTokenizer(line, " ");
+		while(st.hasMoreTokens()){
+			if((url = st.nextToken()).startsWith("/")){
+				break;
+			}
+		}
+		
+		return url;
+	}
+   
 }
