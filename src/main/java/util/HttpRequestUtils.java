@@ -119,7 +119,7 @@ public class HttpRequestUtils {
         
     }
     
-    public static String separateUrlAndParameters(String line) {
+    public static String getUrl(String line) {
 		String url = "";
 		StringTokenizer st = new StringTokenizer(line, " ");
 		while(st.hasMoreTokens()){
