@@ -71,7 +71,7 @@ public class HttpRequest {
 		String[] tokens = getHeader("Cookie").split("=");
 		if(tokens == null){
 			return false;
-		}else if(tokens[1].equals("true")){
+		}else if(tokens[1].equals(true)){
 			return Boolean.parseBoolean(tokens[1]);
 		}
 		return Boolean.parseBoolean(tokens[1]);
